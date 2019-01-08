@@ -31,3 +31,8 @@ Clone 本 Repo 到本地，或下载 Zip 包
 2.运行 main.py
 
 3.查看自动生成的 "result.html" 和 "result.csv"
+
+
+
+## 开源相关
+统计报告使用了 MDUI 开源框架
