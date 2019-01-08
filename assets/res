@@ -1,0 +1,362 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="assets/mdui/css/mdui.min.css">
+        <script src="assets/mdui/js/mdui.min.js"></script>
+        <script src="assets/js/jquery.min.js"></script>
+    </head>
+    <body class="mdui-theme-primary-indigo mdui-theme-accent-pink mdui-appbar-with-toolbar mdui-appbar-with-tab">
+        <div style="height: 25px;"></div>
+        <div class="mdui-appbar mdui-appbar-fixed mdui-appbar-scroll-toolbar-hide">
+            <div class="mdui-toolbar mdui-color-theme">
+                <a class="mdui-typo-headline">LOJ 刷题情况报告</a>
+                <a id="subtitle" class="mdui-typo-title"></a>
+                <div class="mdui-toolbar-spacer"></div>
+                <a class="mdui-btn mdui-btn-icon mdui-ripple" onclick="$('[href=\'#tab5\']')[0].click()"><i class="mdui-icon material-icons">info</i></a>
+            </div>
+            <div class="mdui-tab mdui-color-theme" mdui-tab>
+                <a href="#tab1" class="mdui-ripple mdui-ripple-white" ondragstart="return false">汇总</a>
+                <a href="#tab2" class="mdui-ripple mdui-ripple-white" ondragstart="return false">详细信息</a>
+                <a href="#tab3" class="mdui-ripple mdui-ripple-white" ondragstart="return false">比较器</a>
+                <a href="#tab4" class="mdui-ripple mdui-ripple-white" ondragstart="return false">统计</a>
+                <a href="#tab5" class="mdui-ripple mdui-ripple-white" ondragstart="return false">关于</a>
+            </div>
+        </div>
+        <div class="mdui-container">
+            <div id="tab1">
+                <table id="table1" class="mdui-table mdui-table-hoverable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>用户名</th>
+                            <th>备注名 (姓名)</th>
+                            <th mdui-tooltip="{content: '该用户在 LOJ 上 AC 的题目总数', position: 'top'}">AC 数</th>
+                            <th mdui-tooltip="{content: '该用户在 LOJ 上除去如 A+B 等过水的题的 AC 题目总数', position: 'top'}">有效 AC 数</th>
+                        </tr>
+                    </thead>
+                    <tbody id="status_table">
+                    </tbody>
+                </table>
+            </div>
+            <div id="tab2">
+                <div id="user_details" class="mdui-panel" mdui-panel>
+                </div>
+            </div>
+            <div id="tab3">
+                <div style="text-align: center;">待比较的用户1:<select id="compare1" class="mdui-select"></select></br>待比较的用户2:<select id="compare2" class="mdui-select"></select></br><button id="compare" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent">比较</button></div>
+                <div style="margin-top: 25px;" id="compare_result"></div>
+            </div>
+            <div id="tab4">
+                暂未完成此功能
+            </div>
+            <div id="tab5" class="mdui-typo">
+                    <h2 class="mdui-text-color-theme" style="font-size:45px;font-size: 45px;margin-bottom: 5px;margin-top: 5px;">LOJ AC 统计器 <span class="mdui-text-color-theme" style="font-size:20px;">( LOJ AC Prob Counter )</span></h2>
+                    <a style="font-size:20px;" href="https://github.com/abc2237512422/LOJ-AC-Prob-Counter">Github</a>
+                    </br>
+                    By <a href="https://github.com/abc2237512422" target="_blank">abc2237512422</a></br>
+                    </br>
+                    这是一个 Python 爬虫，它可以爬取 LOJ 上指定多个用户的 AC 记录，并导出漂亮的 HTML 和 CSV 报告。
+                    </br>
+            </div>
+        </div>
+        <footer class="mdui-text-color-grey mdui-typo">
+            <div class="mdui-divider" style="width: 50%;margin:auto;"></div>
+            本报告由 <a href="https://github.com/abc2237512422/LOJ-AC-Prob-Counter" target="_blank">LOJ AC 统计器 (LOJ-AC-Prob-Counter)</a> 生成</br>
+            Developed By <a href="https://github.com/abc2237512422" target="_blank">abc2237512422</a></br>
+            Frontend Powered By <a href="https://www.mdui.org/" target="_blank">MDUI</a>
+        </footer>
+    </body>
+</html>
+<style>
+    footer{
+        text-align: center;
+        margin-top: 50px;
+        margin-bottom: 25px;
+    }
+    footer .mdui-divider{
+        margin-bottom: 15px !important;
+    }
+    #table1 > tbody > tr > td:nth-of-type(4):after,#table1>tbody > tr > td:nth-of-type(5):after{
+        content: " 题";
+    }
+    #table1>thead{
+        cursor: pointer;
+    }
+    .sorting_icon {
+        position: absolute;
+        right: 5px;
+        top: calc(50% - 9px);
+        font-size: 16px;
+    }
+    #user_details .mdui-table > tbody > tr > td {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+    .notvalid {
+        opacity: 0.6;
+    }
+    #compare {
+        margin-top: 15px;
+    }
+    #tab3 .mdui-select {
+        margin-left: 10px;
+    }
+    #compare_result .mdui-card .mdui-card-content{
+        word-spacing: 10px;
+    }
+    #tab3 .mdui-card{
+        margin-bottom: 8px;
+    }
+</style>
+<script>
+function tableAutoSort(id){
+    var table=document.getElementById(id);
+    var table_th=document.getElementsByTagName("th");
+    var table_tbody=table.getElementsByTagName("tbody")[0];
+    var table_tr=table_tbody.getElementsByTagName("tr");
+    function bind_click(_i){
+        table_th[_i].onclick=function(){
+            for (var tmp=0;tmp<table_th.length;tmp++){
+                if (tmp!=_i){
+                    table_th[tmp].setAttribute("order","0");
+                    $(table_th[tmp]).find(".up").addClass("mdui-hidden");
+                    $(table_th[tmp]).find(".down").addClass("mdui-hidden");
+                }
+            }
+            isReverse=0;
+            var order=table_th[_i].getAttribute("order");
+            if (order==null||order=="0"){
+                table_th[_i].setAttribute("order","1");
+                isReverse=0;
+            }else if (order=="1"){
+                table_th[_i].setAttribute("order","2");
+                isReverse=1;
+            }else if (order=="2"){
+                table_th[_i].setAttribute("order","0");
+                if (_i!=0){
+                    $(table_th[_i]).find(".up").addClass("mdui-hidden");
+                    $(table_th[_i]).find(".down").addClass("mdui-hidden");
+                    table_th[0].setAttribute("order","0");
+                    table_th[0].click();
+                    return;
+                }else{
+                    table_th[_i].setAttribute("order","1");
+                    isReverse=0;
+                }
+            }
+            if (isReverse){
+                $(table_th[_i]).find(".up").addClass("mdui-hidden");
+                $(table_th[_i]).find(".down").removeClass("mdui-hidden");
+            }else{
+                $(table_th[_i]).find(".up").removeClass("mdui-hidden");
+                $(table_th[_i]).find(".down").addClass("mdui-hidden");
+            }
+            var temp_arr=[];
+            var temp_tr_arr=[];
+            for(j=0;j<table_tr.length;j++){
+                temp_arr.push(table_tr[j].getElementsByTagName("td")[_i].innerHTML);
+                temp_tr_arr.push(table_tr[j].cloneNode(true));
+            };
+            var tr_length=table_tr.length
+            for(x=0;x<tr_length;x++){
+                table_tbody.removeChild(table_tbody.getElementsByTagName("tr")[0]);
+            }
+            var temp=parseInt(temp_arr[0])||temp_arr[0];
+            if(typeof(temp)=='number'){
+                temp_arr.sort(function(a,b){return a-b;});
+            }else{
+                temp_arr.sort();
+            }
+            if (isReverse){
+                for(k=temp_arr.length-1;k>=0;k--){
+                    for(vv=0;vv<temp_tr_arr.length;vv++){
+                        if(temp_arr[k]==temp_tr_arr[vv].getElementsByTagName("td")[_i].innerHTML){
+                            table_tbody.appendChild(temp_tr_arr[vv]);
+                        }
+                    }
+                }
+            }else{
+                for(k=0;k<temp_arr.length;k++){
+                    for(vv=0;vv<temp_tr_arr.length;vv++){
+                        if(temp_arr[k]==temp_tr_arr[vv].getElementsByTagName("td")[_i].innerHTML){
+                            table_tbody.appendChild(temp_tr_arr[vv]);
+                        }
+                    }
+                }
+            }
+            setUsersOnClick();
+        }
+    }
+    for (var tmp=0;tmp<table_th.length;tmp++){
+        table_th[tmp].innerHTML+="<i class='mdui-hidden up sorting_icon mdui-icon material-icons'>keyboard_arrow_up</i><i class='mdui-hidden down sorting_icon mdui-icon material-icons'>keyboard_arrow_down</i>";
+        table_th[tmp].setAttribute("order","0");
+    }
+    for(i=0;i<table_th.length;i++){
+        bind_click(i);
+    }
+}
+</script>
+<script>
+function loadPage1(){
+    $("#status_table")[0].innerHTML="";
+    for(var i in json){
+        var now=json[i];
+        $("#status_table").append("<tr><td>"+(parseInt(i)+1)+"</td><td><user>"+now.user+"</user></td><td>"+now.name+"</td><td>"+now.allAC+"</td><td>"+now.validAC+"</td></tr>");
+    }
+    tableAutoSort("table1");
+}
+function loadPage2(){
+    $("#user_details")[0].innerHTML="";
+    var tmp="";
+    for(var i in json){
+        var now=json[i];
+        tmp+="<div class='mdui-panel-item'>";
+        tmp+="<div class='mdui-panel-item-header mdui-ripple'><div class='mdui-panel-item-title'>"+now.user+" ("+now.name+")</div><div class='mdui-panel-item-summary'>AC "+now.allAC+" 题，有效 "+now.validAC+" 题</div><i class='mdui-panel-item-arrow mdui-icon material-icons'>keyboard_arrow_down</i></div>";
+        tmp+="<div class='mdui-panel-item-body mdui-typo'>";
+        tmp+="<table id='"+i+"_details' class='mdui-table mdui-table-hoverable'><thead><tr><th>#</th><th>题目编号</th><th>题目名称</th><th>链接</th></tr></thead><tbody>";
+        for (j in now.probs){
+            tmp+="<tr class='"+(now.probs[j].id<100?"notvalid":"")+"'><td>"+(parseInt(j)+1)+"</td><td>"+now.probs[j].id+"</td><td>"+now.probs[j].title+"</td><td><a href='https://loj.ac/problem/"+now.probs[j].id+"' target='_blank'>前往</a></td></tr>";
+        }
+        tmp+="</tbody></table></div>";
+        tmp+="</div>";
+    }
+    $("#user_details").append(tmp);
+}
+function loadPage3(){
+    $("#compare1").append("<option value='0'>请选择用户</option>");
+    $("#compare2").append("<option value='0'>请选择用户</option>");
+    for(var i in json){
+        var now=json[i];
+        $("#compare1").append("<option value='"+(i+1)+"'>"+now.user+" ("+now.name+")</option>");
+        $("#compare2").append("<option value='"+(i+1)+"'>"+now.user+" ("+now.name+")</option>");
+    }
+    var compare1=new mdui.Select('#compare1',{position: 'bottom'});
+    var compare2=new mdui.Select('#compare2',{position: 'bottom'});
+    $("#compare")[0].onclick=function(){
+        if ($("#compare1")[0].selectedIndex==0||$("#compare2")[0].selectedIndex==0){
+            mdui.snackbar({
+                message: '请选择用户'
+            });
+            return;
+        }
+        if ($("#compare1")[0].selectedIndex==$("#compare2")[0].selectedIndex){
+            mdui.snackbar({
+                message: '不能比较同一个用户'
+            });
+            return;
+        }
+        $("#compare_result")[0].innerHTML="";
+        var user1=json[$("#compare1")[0].selectedIndex-1].probs;
+        var user2=json[$("#compare2")[0].selectedIndex-1].probs;
+        var username1=json[$("#compare1")[0].selectedIndex-1].user;
+        var username2=json[$("#compare2")[0].selectedIndex-1].user;
+        var name1=json[$("#compare1")[0].selectedIndex-1].name;
+        var name2=json[$("#compare2")[0].selectedIndex-1].name;
+        var a=new Set(),b=new Set(),map=new Map();
+        for (i in user1){
+            a.add(user1[i].id);
+            map[user1[i].id]=user1[i].title;
+        }
+        for (i in user2){
+            b.add(user2[i].id);
+            map[user2[i].id]=user2[i].title;
+        }
+        var tmp,count,notvalid;
+        tmp="<div class='mdui-card'><div class='mdui-card-primary'><div class='mdui-card-primary-title'>"+username1+"("+name1+") AC 的所有题目</div></div><div class='mdui-card-content mdui-typo'>";
+        count=0;notvalid=0;
+        for (var x of a){
+            count++;
+            if (x<100){
+                notvalid++;
+            }
+            tmp+="<a class='"+(x<100?"notvalid":"")+"' href='https://loj.ac/problem/"+x+"' target='_blank' mdui-tooltip='{content:\""+map[x]+"\"}'>"+x+"</a> ";
+        }
+        tmp+="<div class='mdui-text-color-grey' style='word-spacing:2px;margin-top:10px;'>总计 "+count+" 题 , 有效 "+(count-notvalid)+" 题</div>";
+        tmp+="</div></div>";
+        $("#compare_result").append(tmp);
+
+        tmp="<div class='mdui-card'><div class='mdui-card-primary'><div class='mdui-card-primary-title'>"+username2+"("+name2+") AC 的所有题目</div></div><div class='mdui-card-content mdui-typo'>";
+        count=0;notvalid=0;
+        for (var x of b){
+            count++;
+            if (x<100){
+                notvalid++;
+            }
+            tmp+="<a class='"+(x<100?"notvalid":"")+"' href='https://loj.ac/problem/"+x+"' target='_blank' mdui-tooltip='{content:\""+map[x]+"\"}'>"+x+"</a> ";
+        }
+        tmp+="<div class='mdui-text-color-grey' style='word-spacing:2px;margin-top:10px;'>总计 "+count+" 题 , 有效 "+(count-notvalid)+" 题</div>";
+        tmp+="</div></div>";
+        $("#compare_result").append(tmp);
+
+        var c=[...new Set([...a,...b])];
+        tmp="<div class='mdui-card'><div class='mdui-card-primary'><div class='mdui-card-primary-title'>"+username1+"("+name1+") 和 "+username2+"("+name2+") AC 的所有题目汇总 (并集)</div></div><div class='mdui-card-content mdui-typo'>";
+        count=0;notvalid=0;
+        for (var x of c){
+            count++;
+            if (x<100){
+                notvalid++;
+            }
+            tmp+="<a class='"+(x<100?"notvalid":"")+"' href='https://loj.ac/problem/"+x+"' target='_blank' mdui-tooltip='{content:\""+map[x]+"\"}'>"+x+"</a> ";
+        }
+        tmp+="<div class='mdui-text-color-grey' style='word-spacing:2px;margin-top:10px;'>总计 "+count+" 题 , 有效 "+(count-notvalid)+" 题</div>";
+        tmp+="</div></div>";
+        $("#compare_result").append(tmp);
+
+        var c=new Set([...a].filter(x=>b.has(x)));
+        tmp="<div class='mdui-card'><div class='mdui-card-primary'><div class='mdui-card-primary-title'>"+username1+"("+name1+") 与 "+username2+"("+name2+") 都 AC 的题目 (交集)</div></div><div class='mdui-card-content mdui-typo'>";
+        count=0;notvalid=0;
+        for (var x of c){
+            count++;
+            if (x<100){
+                notvalid++;
+            }
+            tmp+="<a class='"+(x<100?"notvalid":"")+"' href='https://loj.ac/problem/"+x+"' target='_blank' mdui-tooltip='{content:\""+map[x]+"\"}'>"+x+"</a> ";
+        }
+        tmp+="<div class='mdui-text-color-grey' style='word-spacing:2px;margin-top:10px;'>总计 "+count+" 题 , 有效 "+(count-notvalid)+" 题</div>";
+        tmp+="</div></div>";
+        $("#compare_result").append(tmp);
+
+        var c=new Set([...a].filter(x => !b.has(x)));
+        tmp="<div class='mdui-card'><div class='mdui-card-primary'><div class='mdui-card-primary-title'>只有"+username1+"("+name1+") AC 的题目</div></div><div class='mdui-card-content mdui-typo'>";
+        count=0;notvalid=0;
+        for (var x of c){
+            count++;
+            if (x<100){
+                notvalid++;
+            }
+            tmp+="<a class='"+(x<100?"notvalid":"")+"' href='https://loj.ac/problem/"+x+"' target='_blank' mdui-tooltip='{content:\""+map[x]+"\"}'>"+x+"</a> ";
+        }
+        tmp+="<div class='mdui-text-color-grey' style='word-spacing:2px;margin-top:10px;'>总计 "+count+" 题 , 有效 "+(count-notvalid)+" 题</div>";
+        tmp+="</div></div>";
+        $("#compare_result").append(tmp);
+
+        var c=new Set([...b].filter(x => !a.has(x)));
+        tmp="<div class='mdui-card'><div class='mdui-card-primary'><div class='mdui-card-primary-title'>只有"+username2+"("+name2+") AC 的题目</div></div><div class='mdui-card-content mdui-typo'>";
+        count=0;notvalid=0;
+        for (var x of c){
+            count++;
+            if (x<100){
+                notvalid++;
+            }
+            tmp+="<a class='"+(x<100?"notvalid":"")+"' href='https://loj.ac/problem/"+x+"' target='_blank' mdui-tooltip='{content:\""+map[x]+"\"}'>"+x+"</a> ";
+        }
+        tmp+="<div class='mdui-text-color-grey' style='word-spacing:2px;margin-top:10px;'>总计 "+count+" 题 , 有效 "+(count-notvalid)+" 题</div>";
+        tmp+="</div></div>";
+        $("#compare_result").append(tmp);
+    };
+}
+function setUsersOnClick(){
+    $("user")
+    .unbind()
+    .bind("click",function(){
+        var user=this.innerText;
+        window.location.href="https://loj.ac/find_user?nickname="+escape(user);
+    })
+    .attr("mdui-tooltip","{content: '点击查看用户主页', position: 'right'}")
+    .attr("style","cursor:pointer;");
+}
+$("#subtitle")[0].innerText="爬取于 "+archivetime;
+loadPage1();
+loadPage2();
+loadPage3();
+setUsersOnClick();
+</script>
