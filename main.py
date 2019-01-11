@@ -43,7 +43,7 @@ def getHTML(url):
         try:
             res=requests.get(url,timeout=5).text
         except:
-            print("重请求中..",end="")
+            print("请求超时/失败，正在重请求中..")
             time.sleep(0.2)
             continue
         break
@@ -81,10 +81,10 @@ def getUserStatus(user):
     probDict.clear()
     probSet.clear()
     name=userDict[user]
-    print("正在爬取"+user+"("+name+") 的AC记录，页码",end="")
+    print("正在爬取"+user+"("+name+") 的AC记录")
     page=1
     while (1):
-        print("/"+format(page),end="")
+        print("爬取第"+format(page)+"页...")
         res=getStatus(user,page)
         if (res==0):
             break
