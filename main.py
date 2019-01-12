@@ -8,6 +8,7 @@ from urllib import request
 from bs4 import BeautifulSoup
 
 probDict={}
+ACTimeDict={}
 probSet=set([])
 
 userDict={}
@@ -17,6 +18,7 @@ resDict={}
 resList=[]
 allAC=0
 validAC=0
+lastACTime="-"
 
 resJSONList=[]
 
@@ -59,13 +61,19 @@ def getStatus(userName,page):
     for entry in records:
         name=entry['info']['problemName']
         proid=entry['info']['problemId']
+        ACTime=entry['info']['submitTime']
         probDict[proid]=name
+        ACTimeDict[proid]=ACTime
         if (proid not in probSet):
             global allAC,validAC
             allAC=allAC+1
             if (proid>=100):
                 validAC=validAC+1
         probSet.add(proid)
+    # 记录最后 AC 时间
+    if (page==1 and len(records)>0):
+        global lastACTime
+        lastACTime=records[0]['info']['submitTime']
     # 检测是否有下一页
     dom=BeautifulSoup(html,"html.parser")
     nextbutton=dom.find(id="page_next")
@@ -75,11 +83,13 @@ def getStatus(userName,page):
         return 0
 
 def getUserStatus(user):
-    global allAC,validAC,resList
+    global allAC,validAC,resList,lastACTime
     allAC=0
     validAC=0
+    lastACTime="-"
     probDict.clear()
     probSet.clear()
+    ACTimeDict.clear()
     name=userDict[user]
     print("正在爬取"+user+"("+name+") 的AC记录")
     page=1
@@ -95,6 +105,8 @@ def getUserStatus(user):
     print("")
     print(user+"("+name+") 共AC了 "+format(allAC)+" 道题，有效AC "+format(validAC)+" 题，分别是：")
     print(result)
+    print("最后 AC 时间："+lastACTime)
+    print("")
 
 def getJSONDict(user):
     res={}
@@ -102,11 +114,13 @@ def getJSONDict(user):
     res['name']=userDict[user]
     res['allAC']=allAC
     res['validAC']=validAC
+    res['lastACTime']=lastACTime
     probJSONList=[]
     for proid in resList:
         tmp={}
         tmp['id']=proid
         tmp['title']=probDict[proid]
+        tmp['time']=ACTimeDict[proid]
         probJSONList.append(tmp)
     res['probs']=probJSONList
     return res
@@ -129,9 +143,9 @@ f.close()
 
 # 导出CSV
 f=open("result.csv","w",encoding="ansi")
-f.write("用户名,备注名,AC数,有效AC数"+"\n")
+f.write("用户名,备注名,AC数,有效AC数,最后AC时间"+"\n")
 for i in range(0,len(resJSONList)):
-    f.write(format(resJSONList[i]['user'])+","+format(resJSONList[i]['name'])+","+format(resJSONList[i]['allAC'])+","+format(resJSONList[i]['validAC'])+"\n")
+    f.write(format(resJSONList[i]['user'])+","+format(resJSONList[i]['name'])+","+format(resJSONList[i]['allAC'])+","+format(resJSONList[i]['validAC'])+","+format(resJSONList[i]['lastACTime'])+"\n")
 f.close()
 
-print("已导出为 HTML(result.html) 和 CSV(result.csv) 格式")
+print("已导出为 HTML(result.html) 和 CSV(result.csv) 文件")
