@@ -31,6 +31,7 @@
                             <th>备注名 (姓名)</th>
                             <th mdui-tooltip="{content: '该用户在 LOJ 上 AC 的题目总数', position: 'top'}">AC 数</th>
                             <th mdui-tooltip="{content: '该用户在 LOJ 上除去如 A+B 等过水的题的 AC 题目总数', position: 'top'}">有效 AC 数</th>
+                            <th mdui-tooltip="{content: '该用户在 LOJ 上最后一次 AC 的时间', position: 'top'}">最后 AC 时间</th>
                         </tr>
                     </thead>
                     <tbody id="status_table">
@@ -200,7 +201,7 @@ function loadPage1(){
     $("#status_table")[0].innerHTML="";
     for(var i in json){
         var now=json[i];
-        $("#status_table").append("<tr><td>"+(parseInt(i)+1)+"</td><td><user>"+now.user+"</user></td><td>"+now.name+"</td><td>"+now.allAC+"</td><td>"+now.validAC+"</td></tr>");
+        $("#status_table").append("<tr><td>"+(parseInt(i)+1)+"</td><td><user>"+now.user+"</user></td><td>"+now.name+"</td><td>"+now.allAC+"</td><td>"+now.validAC+"</td><td>"+now.lastACTime+"</td></tr>");
     }
     tableAutoSort("table1");
 }
@@ -212,9 +213,9 @@ function loadPage2(){
         tmp+="<div class='mdui-panel-item'>";
         tmp+="<div class='mdui-panel-item-header mdui-ripple'><div class='mdui-panel-item-title'>"+now.user+" ("+now.name+")</div><div class='mdui-panel-item-summary'>AC "+now.allAC+" 题，有效 "+now.validAC+" 题</div><i class='mdui-panel-item-arrow mdui-icon material-icons'>keyboard_arrow_down</i></div>";
         tmp+="<div class='mdui-panel-item-body mdui-typo'>";
-        tmp+="<table id='"+i+"_details' class='mdui-table mdui-table-hoverable'><thead><tr><th>#</th><th>题目编号</th><th>题目名称</th><th>链接</th></tr></thead><tbody>";
+        tmp+="<table id='"+i+"_details' class='mdui-table mdui-table-hoverable'><thead><tr><th>#</th><th>题目编号</th><th>题目名称</th><th>AC 时间</th><th>链接</th></tr></thead><tbody>";
         for (j in now.probs){
-            tmp+="<tr class='"+(now.probs[j].id<100?"notvalid":"")+"'><td>"+(parseInt(j)+1)+"</td><td>"+now.probs[j].id+"</td><td>"+now.probs[j].title+"</td><td><a href='https://loj.ac/problem/"+now.probs[j].id+"' target='_blank'>前往</a></td></tr>";
+            tmp+="<tr class='"+(now.probs[j].id<100?"notvalid":"")+"'><td>"+(parseInt(j)+1)+"</td><td>"+now.probs[j].id+"</td><td>"+now.probs[j].title+"</td><td>"+now.probs[j].time+"</td><td><a href='https://loj.ac/problem/"+now.probs[j].id+"' target='_blank'>前往</a></td></tr>";
         }
         tmp+="</tbody></table></div>";
         tmp+="</div>";
