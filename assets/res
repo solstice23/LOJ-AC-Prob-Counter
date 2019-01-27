@@ -3,6 +3,8 @@
         <link rel="stylesheet" href="assets/mdui/css/mdui.min.css">
         <script src="assets/mdui/js/mdui.min.js"></script>
         <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/chart.min.js"></script>
+        <script src="assets/js/jquery.tablesorter.js"></script>
     </head>
     <body class="mdui-theme-primary-indigo mdui-theme-accent-pink mdui-appbar-with-toolbar mdui-appbar-with-tab">
         <div style="height: 25px;"></div>
@@ -21,7 +23,7 @@
                 <a href="#tab5" class="mdui-ripple mdui-ripple-white" ondragstart="return false">关于</a>
             </div>
         </div>
-        <div class="mdui-container">
+        <div class="mdui-container" style="position:relative;">
             <div id="tab1">
                 <table id="table1" class="mdui-table mdui-table-hoverable">
                     <thead>
@@ -39,24 +41,41 @@
                 </table>
             </div>
             <div id="tab2">
-                <div id="user_details" class="mdui-panel" mdui-panel>
+                <div class="mdui-tab mdui-tab-centered" mdui-tab style="left:0;right:0;margin-top:-10px;margin-bottom:-20px;transform:scale(1.2);" id="nav-2">
+                    <a href="#tab2-1" class="mdui-ripple">题号统计</a>
+                    <a href="#tab2-2" class="mdui-ripple">刷题时间</a>
+                </div>
+                <style>#nav-2 .mdui-tab-indicator{opacity:0;}</style>
+                <div style="margin-top:35px;">
+                    <div id="tab2-1">
+                        <div id="user_details" class="mdui-panel" mdui-panel>
+                        </div>
+                    </div>
+                    <div id="tab2-2">
+                        <div id="user_time" class="mdui-panel" mdui-panel>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="tab3">
                 <div style="text-align: center;">待比较的用户1:<select id="compare1" class="mdui-select"></select></br>待比较的用户2:<select id="compare2" class="mdui-select"></select></br><button id="compare" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent">比较</button></div>
-                <div style="margin-top: 25px;" id="compare_result"></div>
+                <div style="margin-top:25px;" id="compare_result"></div>
             </div>
             <div id="tab4">
-                暂未完成此功能
+            </br>你没看错，这个功能咕咕咕了！
             </div>
             <div id="tab5" class="mdui-typo">
                     <h2 class="mdui-text-color-theme" style="font-size:45px;font-size: 45px;margin-bottom: 5px;margin-top: 5px;">LOJ AC 统计器 <span class="mdui-text-color-theme" style="font-size:20px;">( LOJ AC Prob Counter )</span></h2>
+                    <a class="no-underline" target="_blank" href="https://github.com/abc2237512422/LOJ-AC-Prob-Counter"><img src="https://img.shields.io/github/stars/abc2237512422/LOJ-AC-Prob-Counter.svg?style=social&amp;label=Stars"></a>
+                    <style>.no-underline:before{content:""!important;display:none !important;}</style>
+                    </br>
                     <a style="font-size:20px;" href="https://github.com/abc2237512422/LOJ-AC-Prob-Counter">Github</a>
                     </br>
                     By <a href="https://github.com/abc2237512422" target="_blank">abc2237512422</a></br>
                     </br>
                     这是一个 Python 爬虫，它可以爬取 LOJ 上指定多个用户的 AC 记录，并导出漂亮的 HTML 和 CSV 报告。
                     </br>
+                    使用的开源库：<a href="https://www.mdui.org/" target="_blank">MDUI</a> , <a href="https://github.com/chartjs/Chart.js" target="_blank">Chart.js</a> , <a href="https://github.com/Mottie/tablesorter" target="_blank">TableSorter</a> , <a href="http://jquery.com/" target="_blank">Jquery</a>
             </div>
         </div>
         <footer class="mdui-text-color-grey mdui-typo">
@@ -82,11 +101,24 @@
     #table1>thead{
         cursor: pointer;
     }
-    .sorting_icon {
+    .tablesorter-headerAsc:after {
+        content: "arrow_drop_up";
+        font-family: 'Material Icons';
         position: absolute;
-        right: 5px;
-        top: calc(50% - 9px);
-        font-size: 16px;
+        right: 2px;
+        top: 11px;
+        bottom: auto;
+    }
+    .tablesorter-headerDesc:after {
+        content: "arrow_drop_down";
+        font-family: 'Material Icons';
+        position: absolute;
+        right: 2px;
+        top: 11px;
+        bottom: auto;
+    }
+    .mdui-table > thead > tr > th{
+        outline: none;
     }
     #user_details .mdui-table > tbody > tr > td {
         padding-top: 5px;
@@ -197,15 +229,22 @@ function tableAutoSort(id){
 }
 </script>
 <script>
+function toUnixTime(time){
+    return Date.parse(time);
+}
+</script>
+<script>
 function loadPage1(){
     $("#status_table")[0].innerHTML="";
     for(var i in json){
         var now=json[i];
         $("#status_table").append("<tr><td>"+(parseInt(i)+1)+"</td><td><user>"+now.user+"</user></td><td>"+now.name+"</td><td>"+now.allAC+"</td><td>"+now.validAC+"</td><td>"+now.lastACTime+"</td></tr>");
     }
-    tableAutoSort("table1");
+    $("#table1").tablesorter();
+    //tableAutoSort("table1");
 }
 function loadPage2(){
+    //题目详情
     $("#user_details")[0].innerHTML="";
     var tmp="";
     for(var i in json){
@@ -221,6 +260,153 @@ function loadPage2(){
         tmp+="</div>";
     }
     $("#user_details").append(tmp);
+    for(var i in json){
+        $("#"+i+"_details").tablesorter();
+    }
+    //刷题时间
+    $("#user_time")[0].innerHTML="";
+    tmp=""
+    var list1=new Array(),list2=new Array()
+    for(var i in json){
+        var now=json[i];
+        tmp+="<div class='mdui-panel-item'>";
+        tmp+="<div class='mdui-panel-item-header mdui-ripple'><div class='mdui-panel-item-title'>"+now.user+" ("+now.name+")</div><div class='mdui-panel-item-summary'>最后 AC 时间 "+now.lastACTime+"</div><i class='mdui-panel-item-arrow mdui-icon material-icons'>keyboard_arrow_down</i></div>";
+        tmp+="<div class='mdui-panel-item-body mdui-typo'>";
+        tmp+="<div style='width:80%;' class='mdui-center'><canvas id='actime_"+i+"_1'></canvas></div>";
+        tmp+="<div style='width:80%;' class='mdui-center'><canvas id='actime_"+i+"_2'></canvas></div>";
+        tmp+="<div style='width:90%;' class='mdui-center'><canvas id='actime_"+i+"_3'></canvas></div>";
+        tmp+="<div style='width:100%;' class='mdui-center'><canvas id='actime_"+i+"_4'></canvas></div>";
+        var aday=1000*60*60*24;
+        var nowtime=toUnixTime(archivetime)+aday;
+        var timelist=new Array(),aclist=new Array();
+        var map=new Map();
+        for (var j=365;j>=1;j--){
+            var date=new Date(nowtime-j*aday)
+            timelist.push((date.getMonth()+1)+"-"+(date.getDate()));
+        }
+        for (j in now.probs){
+            var date=new Date(toUnixTime(now.probs[j].time)); 
+            var key=(date.getMonth()+1)+"-"+(date.getDate());
+            if (!map.has(key)){
+                map.set(key,1);
+            }else{
+                map.set(key,map.get(key)+1);
+            }
+        }
+        for (var j=1;j<=365;j++){
+            var key=timelist[j-1];
+            if (!map.has(key)){
+                aclist.push(0);
+            }else{
+                aclist.push(map.get(key));
+            }
+        }
+        list1.push(timelist)
+        list2.push(aclist)
+        tmp+="</div></div>";
+    }
+    $("#user_time").append(tmp);
+    for(var i in json){
+        var ctx=$("#actime_"+i+"_1")[0].getContext("2d");
+        var data = {
+            labels: list1[i].slice(-30),
+            datasets: [{
+                label: "AC 数",
+                backgroundColor:"#3f51b533",
+                borderColor:"#3f51b5",
+                pointBackgroundColor:"#3f51b5",
+                pointBorderColor:"#fff",
+                data: list2[i].slice(-30)
+            }
+            ]
+        };
+        var myLineChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                title: {
+                    display: true,
+                    text: '最近 30 天的 AC 情况'
+                }
+            }
+        });
+    }
+    for(var i in json){
+        var ctx=$("#actime_"+i+"_2")[0].getContext("2d");
+        var data = {
+            labels: list1[i].slice(-90),
+            datasets: [{
+                label: "AC 数",
+                backgroundColor:"#3f51b533",
+                borderColor:"#3f51b5",
+                pointBackgroundColor:"#3f51b5",
+                pointBorderColor:"#fff",
+                data: list2[i].slice(-90)
+            }
+            ]
+        };
+        var myLineChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                title: {
+                    display: true,
+                    text: '最近 3 个月的 AC 情况'
+                }
+            }
+        });
+    }
+    for(var i in json){
+        var ctx=$("#actime_"+i+"_3")[0].getContext("2d");
+        var data = {
+            labels: list1[i].slice(-180),
+            datasets: [{
+                label: "AC 数",
+                backgroundColor:"#3f51b533",
+                borderColor:"#3f51b5",
+                pointBackgroundColor:"#3f51b5",
+                pointBorderColor:"#fff",
+                data: list2[i].slice(-180)
+            }
+            ]
+        };
+        var myLineChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                title: {
+                    display: true,
+                    text: '最近 半年 的 AC 情况'
+                }
+            }
+        });
+    }
+    for(var i in json){
+        var ctx=$("#actime_"+i+"_4")[0].getContext("2d");
+        var data = {
+            labels: list1[i],
+            datasets: [{
+                label: "AC 数",
+                backgroundColor:"#3f51b533",
+                borderColor:"#3f51b5",
+                pointBackgroundColor:"#3f51b5",
+                pointBorderColor:"#fff",
+                data: list2[i]
+            }
+            ]
+        };
+        var myLineChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                title: {
+                    display: true,
+                    text: '最近 一年 的 AC 情况'
+                }
+            }
+        });
+    }
+    
 }
 function loadPage3(){
     $("#compare1").append("<option value='0'>请选择用户</option>");
