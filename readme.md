@@ -25,7 +25,6 @@ Clone 本 Repo 到本地，或下载 Zip 包
 + requests
 + BeautifulSoup4
 
-### 快速安装依赖
 您可以运行 setup.bat 来快速安装所需要的依赖
 
 在运行之前，请确保其放置在 pip 目录下或 Python 已添加到 Path
