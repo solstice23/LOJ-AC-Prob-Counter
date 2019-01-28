@@ -266,7 +266,7 @@ function loadPage2(){
     //刷题时间
     $("#user_time")[0].innerHTML="";
     tmp=""
-    var list1=new Array(),list2=new Array()
+    var list1=new Array(),list2=new Array(),list3=new Array(),list4=new Array()
     for(var i in json){
         var now=json[i];
         tmp+="<div class='mdui-panel-item'>";
@@ -274,9 +274,12 @@ function loadPage2(){
         tmp+="<div class='mdui-panel-item-body mdui-typo'>";
         tmp+="<div style='width:80%;' class='mdui-center'><canvas id='actime_"+i+"_1'></canvas></div>";
         tmp+="<div style='width:80%;' class='mdui-center'><canvas id='actime_"+i+"_2'></canvas></div>";
-        tmp+="<div style='width:90%;' class='mdui-center'><canvas id='actime_"+i+"_3'></canvas></div>";
-        tmp+="<div style='width:100%;' class='mdui-center'><canvas id='actime_"+i+"_4'></canvas></div>";
-        var aday=1000*60*60*24;
+        tmp+="<div style='width:80%;' class='mdui-center'><canvas id='actime_"+i+"_3'></canvas></div>";
+        tmp+="<div style='width:80%;' class='mdui-center'><canvas id='actime_"+i+"_4'></canvas></div>";
+        tmp+="<div style='width:90%;' class='mdui-center'><canvas id='actime_"+i+"_5'></canvas></div>";
+        tmp+="<div style='width:100%;' class='mdui-center'><canvas id='actime_"+i+"_6'></canvas></div>";
+        var aday=1000*60*60*24,ahour=1000*60*60;
+        //以天统计
         var nowtime=toUnixTime(archivetime)+aday;
         var timelist=new Array(),aclist=new Array();
         var map=new Map();
@@ -303,11 +306,88 @@ function loadPage2(){
         }
         list1.push(timelist)
         list2.push(aclist)
+        //以小时统计
+        nowtime=new Date(new Date(new Date(toUnixTime(archivetime)+ahour).setMinutes(0)).setSeconds(0)).setMilliseconds(0);
+        timelist=new Array(),aclist=new Array();
+        map=new Map();
+        for (var j=72;j>=1;j--){
+            var date=new Date(nowtime-j*ahour)
+            timelist.push((date.getMonth()+1)+"-"+(date.getDate())+" "+(date.getHours())+":00");
+        }
+        for (j in now.probs){
+            var date=new Date(toUnixTime(now.probs[j].time)); 
+            var key=((date.getMonth()+1)+"-"+(date.getDate())+" "+(date.getHours())+":00");
+            if (!map.has(key)){
+                map.set(key,1);
+            }else{
+                map.set(key,map.get(key)+1);
+            }
+        }
+        for (var j=1;j<=72;j++){
+            var key=timelist[j-1];
+            if (!map.has(key)){
+                aclist.push(0);
+            }else{
+                aclist.push(map.get(key));
+            }
+        }
+        list3.push(timelist)
+        list4.push(aclist)
         tmp+="</div></div>";
     }
     $("#user_time").append(tmp);
     for(var i in json){
         var ctx=$("#actime_"+i+"_1")[0].getContext("2d");
+        var data = {
+            labels: list3[i].slice(-24),
+            datasets: [{
+                label: "AC 数",
+                backgroundColor:"#3f51b533",
+                borderColor:"#3f51b5",
+                pointBackgroundColor:"#3f51b5",
+                pointBorderColor:"#fff",
+                data: list4[i].slice(-24)
+            }
+            ]
+        };
+        var lineChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                title: {
+                    display: true,
+                    text: '最近 24 小时 的 AC 情况'
+                }
+            }
+        });
+    }
+    for(var i in json){
+        var ctx=$("#actime_"+i+"_2")[0].getContext("2d");
+        var data = {
+            labels: list3[i],
+            datasets: [{
+                label: "AC 数",
+                backgroundColor:"#3f51b533",
+                borderColor:"#3f51b5",
+                pointBackgroundColor:"#3f51b5",
+                pointBorderColor:"#fff",
+                data: list4[i]
+            }
+            ]
+        };
+        var lineChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                title: {
+                    display: true,
+                    text: '最近 72 小时 的 AC 情况'
+                }
+            }
+        });
+    }
+    for(var i in json){
+        var ctx=$("#actime_"+i+"_3")[0].getContext("2d");
         var data = {
             labels: list1[i].slice(-30),
             datasets: [{
@@ -320,7 +400,7 @@ function loadPage2(){
             }
             ]
         };
-        var myLineChart = new Chart(ctx, {
+        var lineChart = new Chart(ctx, {
             type: 'line',
             data: data,
             options: {
@@ -332,7 +412,7 @@ function loadPage2(){
         });
     }
     for(var i in json){
-        var ctx=$("#actime_"+i+"_2")[0].getContext("2d");
+        var ctx=$("#actime_"+i+"_4")[0].getContext("2d");
         var data = {
             labels: list1[i].slice(-90),
             datasets: [{
@@ -345,7 +425,7 @@ function loadPage2(){
             }
             ]
         };
-        var myLineChart = new Chart(ctx, {
+        var lineChart = new Chart(ctx, {
             type: 'line',
             data: data,
             options: {
@@ -357,7 +437,7 @@ function loadPage2(){
         });
     }
     for(var i in json){
-        var ctx=$("#actime_"+i+"_3")[0].getContext("2d");
+        var ctx=$("#actime_"+i+"_5")[0].getContext("2d");
         var data = {
             labels: list1[i].slice(-180),
             datasets: [{
@@ -370,7 +450,7 @@ function loadPage2(){
             }
             ]
         };
-        var myLineChart = new Chart(ctx, {
+        var lineChart = new Chart(ctx, {
             type: 'line',
             data: data,
             options: {
@@ -382,7 +462,7 @@ function loadPage2(){
         });
     }
     for(var i in json){
-        var ctx=$("#actime_"+i+"_4")[0].getContext("2d");
+        var ctx=$("#actime_"+i+"_6")[0].getContext("2d");
         var data = {
             labels: list1[i],
             datasets: [{
@@ -395,7 +475,7 @@ function loadPage2(){
             }
             ]
         };
-        var myLineChart = new Chart(ctx, {
+        var lineChart = new Chart(ctx, {
             type: 'line',
             data: data,
             options: {
@@ -529,6 +609,127 @@ function loadPage3(){
         tmp+="<div class='mdui-text-color-grey' style='word-spacing:2px;margin-top:10px;'>总计 "+count+" 题 , 有效 "+(count-notvalid)+" 题</div>";
         tmp+="</div></div>";
         $("#compare_result").append(tmp);
+
+        tmp="<div class='mdui-card'><div class='mdui-card-primary'><div class='mdui-card-primary-title'>最近 30 天刷题曲线</div></div><div class='mdui-card-content mdui-typo'><div style='width:80%;' class='mdui-center'><canvas id='actime_compare_1'></canvas></div></div></div>";
+        tmp+="<div class='mdui-card'><div class='mdui-card-primary'><div class='mdui-card-primary-title'>最近 3 个月 刷题曲线</div></div><div class='mdui-card-content mdui-typo'><div style='width:80%;' class='mdui-center'><canvas id='actime_compare_2'></canvas></div></div></div>";
+        tmp+="<div class='mdui-card'><div class='mdui-card-primary'><div class='mdui-card-primary-title'>最近 一年 刷题曲线</div></div><div class='mdui-card-content mdui-typo'><div style='width:80%;' class='mdui-center'><canvas id='actime_compare_3'></canvas></div></div></div>";
+        $("#compare_result").append(tmp);
+        var aday=1000*60*60*24,ahour=1000*60*60;
+        var nowtime=toUnixTime(archivetime)+aday;
+        var timelist=new Array(),aclist=new Array(),aclist2=new Array();
+        var map=new Map(),map2=new Map();
+        for (var j=365;j>=1;j--){
+            var date=new Date(nowtime-j*aday)
+            timelist.push((date.getMonth()+1)+"-"+(date.getDate()));
+        }
+        for (j in user1){
+            var date=new Date(toUnixTime(user1[j].time)); 
+            var key=(date.getMonth()+1)+"-"+(date.getDate());
+            if (!map.has(key)){
+                map.set(key,1);
+            }else{
+                map.set(key,map.get(key)+1);
+            }
+        }
+        for (j in user2){
+            var date=new Date(toUnixTime(user2[j].time)); 
+            var key=(date.getMonth()+1)+"-"+(date.getDate());
+            if (!map2.has(key)){
+                map2.set(key,1);
+            }else{
+                map2.set(key,map2.get(key)+1);
+            }
+        }
+        for (var j=1;j<=365;j++){
+            var key=timelist[j-1];
+            if (!map.has(key)){
+                aclist.push(0);
+            }else{
+                aclist.push(map.get(key));
+            }
+            if (!map2.has(key)){
+                aclist2.push(0);
+            }else{
+                aclist2.push(map2.get(key));
+            }
+        }
+        var ctx=$("#actime_compare_1")[0].getContext("2d");
+        var data = {
+            labels: timelist.slice(-30),
+            datasets: [{
+                label: username1,
+                backgroundColor:"#3f51b533",
+                borderColor:"#3f51b5",
+                pointBackgroundColor:"#3f51b5",
+                pointBorderColor:"#fff",
+                data: aclist.slice(-30)
+            },{
+                label: username2,
+                backgroundColor:"#ff408133",
+                borderColor:"#ff4081",
+                pointBackgroundColor:"#ff4081",
+                pointBorderColor:"#fff",
+                data: aclist2.slice(-30)
+            }
+            ]
+        };
+        var lineChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+            }
+        });
+        var ctx=$("#actime_compare_2")[0].getContext("2d");
+        var data = {
+            labels: timelist.slice(-90),
+            datasets: [{
+                label: username1,
+                backgroundColor:"#3f51b533",
+                borderColor:"#3f51b5",
+                pointBackgroundColor:"#3f51b5",
+                pointBorderColor:"#fff",
+                data: aclist.slice(-90)
+            },{
+                label: username2,
+                backgroundColor:"#ff408133",
+                borderColor:"#ff4081",
+                pointBackgroundColor:"#ff4081",
+                pointBorderColor:"#fff",
+                data: aclist2.slice(-90)
+            }
+            ]
+        };
+        var lineChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+            }
+        });var ctx=$("#actime_compare_3")[0].getContext("2d");
+        var data = {
+            labels: timelist,
+            datasets: [{
+                label: username1,
+                backgroundColor:"#3f51b533",
+                borderColor:"#3f51b5",
+                pointBackgroundColor:"#3f51b5",
+                pointBorderColor:"#fff",
+                data: aclist
+            },{
+                label: username2,
+                backgroundColor:"#ff408133",
+                borderColor:"#ff4081",
+                pointBackgroundColor:"#ff4081",
+                pointBorderColor:"#fff",
+                data: aclist2
+            }
+            ]
+        };
+        var lineChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+            }
+        });
     };
 }
 function setUsersOnClick(){
