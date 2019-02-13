@@ -28,7 +28,7 @@ def writeFile(context): #测试时用
     f.close()
 
 def readUser():# 读取待查询用户列表
-    for line in open("users.csv"): 
+    for line in open("users.csv",encoding="gbk"): 
         line=line.replace('\r\n','')
         line=line.replace('\n','')
         if (line[0]=='#'):
