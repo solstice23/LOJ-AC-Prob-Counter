@@ -28,7 +28,7 @@ def writeFile(context): #测试时用
     f.close()
 
 def readUser():# 读取待查询用户列表
-    for line in open("users.csv",encoding="gbk"): 
+    for line in open("users.csv"): 
         line=line.replace('\r\n','')
         line=line.replace('\n','')
         if (line[0]=='#'):
@@ -51,8 +51,8 @@ def getHTML(url):
         break
     return res
 
-def getStatus(userName,page):
-    html=getHTML("https://loj.ac/submissions?&submitter="+parse.quote(userName)+"&status=Accepted&page="+format(page))
+def getStatus(url,page):
+    html=getHTML(url)
     html=format(html)
     # 提取并遍历每一条记录
     reg=re.compile(r'itemList = (.*?);')
@@ -78,11 +78,14 @@ def getStatus(userName,page):
     dom=BeautifulSoup(html,"html.parser")
     nextbutton=dom.find(id="page_next")
     if (nextbutton==None):
-        return 0
+        return "0"
     if ("disabled" in nextbutton['class']):
-        return 0
+        return "0"
+    return "https://loj.ac"+nextbutton['href']
+    
 
 def getUserStatus(user):
+    nowUrl="https://loj.ac/submissions?status=Accepted&submitter="+format(user)
     global allAC,validAC,resList,lastACTime
     allAC=0
     validAC=0
@@ -91,12 +94,12 @@ def getUserStatus(user):
     probSet.clear()
     ACTimeDict.clear()
     name=userDict[user]
-    print("正在爬取"+user+"("+name+") 的AC记录")
+    print("正在爬取 "+user+"("+name+") 的AC记录")
     page=1
     while (1):
         print("爬取第"+format(page)+"页...")
-        res=getStatus(user,page)
-        if (res==0):
+        nowUrl=getStatus(nowUrl,page)
+        if (nowUrl=="0"):
             break
         page=page+1
     result=sorted(probSet)
